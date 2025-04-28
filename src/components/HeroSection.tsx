@@ -28,8 +28,8 @@ const HeroSection = () => {
           <div className="relative hidden md:block animate-fade-in">
             <div className="aspect-square rounded-full bg-kitchenia-orange/10 p-8">
               <img 
-                src="https://images.unsplash.com/photo-1662116663302-5ef623fb1d9d?q=80&w=1000&auto=format&fit=crop" 
-                alt="Delicious wraps and rolls" 
+                src="/lovable-uploads/79977ee4-003c-4e7a-95bd-b729231e5e8e.png" 
+                alt="Delicious desi food spread" 
                 className="rounded-full object-cover w-full h-full shadow-xl"
               />
             </div>
