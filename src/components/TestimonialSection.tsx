@@ -1,4 +1,6 @@
 
+import { Link } from 'react-router-dom';
+
 const testimonials = [
   {
     id: 1,
@@ -36,12 +38,16 @@ const TestimonialSection = () => {
         
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="bg-white p-6 rounded-lg shadow-md">
+            <Link 
+              key={testimonial.id} 
+              to={`/testimonial/${testimonial.id}`}
+              className="bg-white p-6 rounded-lg shadow-md transition-transform hover:scale-105 hover:shadow-lg"
+            >
               <div className="flex items-center mb-4">
                 <img 
                   src={testimonial.avatar} 
                   alt={testimonial.name} 
-                  className="w-12 h-12 rounded-full mr-4"
+                  className="w-12 h-12 rounded-full mr-4 object-cover"
                 />
                 <div>
                   <h4 className="font-semibold">{testimonial.name}</h4>
@@ -56,7 +62,7 @@ const TestimonialSection = () => {
                   </svg>
                 ))}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
