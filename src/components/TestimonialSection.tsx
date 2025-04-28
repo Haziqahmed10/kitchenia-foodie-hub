@@ -5,21 +5,21 @@ const testimonials = [
     name: "Ayesha Khan",
     role: "Regular Customer",
     content: "The wraps from Kitchenia are amazing! So fresh and tasty, they remind me of my mother's cooking. Delivery is always on time as well.",
-    avatar: "https://i.pravatar.cc/150?img=32"
+    avatar: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9"
   },
   {
     id: 2,
     name: "Fatima Ahmed",
     role: "Food Lover",
     content: "I order their parathas at least twice a week. The quality has been consistently excellent, and the homemade taste is unmistakable!",
-    avatar: "https://i.pravatar.cc/150?img=29"
+    avatar: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d"
   },
   {
     id: 3,
     name: "Sara Malik",
     role: "Busy Mom",
     content: "Kitchenia has made my life so much easier. I can serve fresh, homemade-style food to my family even on my busiest days.",
-    avatar: "https://i.pravatar.cc/150?img=5"
+    avatar: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9"
   }
 ];
 
