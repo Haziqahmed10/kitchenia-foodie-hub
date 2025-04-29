@@ -72,59 +72,45 @@ const MenuSection = () => {
     : menuItems.filter(item => item.category === activeTab);
   
   return (
-    <section className="bg-kitchenia-lightGray py-16" id="menu">
-      <div className="section-container">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Menu</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Explore our selection of freshly prepared, homemade favorites
-          </p>
+    <div>
+      <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
+        <div className="flex justify-center mb-8">
+          <TabsList className="bg-white shadow-md">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="shawarma">Shawarma</TabsTrigger>
+            <TabsTrigger value="paratha">Parathas</TabsTrigger>
+            <TabsTrigger value="wrap">Wraps</TabsTrigger>
+          </TabsList>
         </div>
         
-        <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-          <div className="flex justify-center mb-8">
-            <TabsList className="bg-white">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="shawarma">Shawarma</TabsTrigger>
-              <TabsTrigger value="paratha">Parathas</TabsTrigger>
-              <TabsTrigger value="wrap">Wraps</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value={activeTab} className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item) => (
-                <div key={item.id} className="food-card">
-                  <div className="h-48 overflow-hidden">
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-lg">{item.name}</h3>
-                      <span className="text-kitchenia-orange font-semibold">Rs. {item.price}</span>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-                    <Button asChild variant="outline" className="w-full border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
-                      <Link to={`/order?item=${item.id}`}>Order Now</Link>
-                    </Button>
-                  </div>
+        <TabsContent value={activeTab} className="mt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="food-card group">
+                <div className="h-52 overflow-hidden relative">
+                  <img 
+                    src={item.image} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span className="absolute bottom-2 right-2 bg-kitchenia-orange text-white px-2 py-1 rounded-md font-bold">
+                    Rs. {item.price}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="mt-12 text-center">
-          <Button asChild size="lg" className="bg-kitchenia-orange hover:bg-orange-600">
-            <Link to="/order">See Full Menu & Order</Link>
-          </Button>
-        </div>
-      </div>
-    </section>
+                <div className="p-4">
+                  <h3 className="font-bold text-lg mb-2">{item.name}</h3>
+                  <p className="text-gray-600 text-sm mb-4">{item.description}</p>
+                  <Button asChild variant="outline" className="w-full border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
+                    <Link to={`/order?item=${item.id}`}>Order Now</Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
