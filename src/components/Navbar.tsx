@@ -11,8 +11,8 @@ const Navbar = () => {
   
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Menu', href: '/#menu' },
-    { name: 'About', href: '/#about' },
+    { name: 'Menu', href: '/menu' },
+    { name: 'About', href: '/about' },
     { name: 'Order', href: '/order' },
   ];
 
@@ -37,7 +37,7 @@ const Navbar = () => {
                 to={item.href}
                 className={cn(
                   "text-gray-700 hover:text-kitchenia-orange font-medium transition-colors",
-                  (location.pathname === item.href || (location.pathname === '/' && item.href.startsWith('/#'))) && "text-kitchenia-orange"
+                  location.pathname === item.href && "text-kitchenia-orange"
                 )}
               >
                 {item.name}
@@ -73,7 +73,7 @@ const Navbar = () => {
                 to={item.href}
                 className={cn(
                   "block px-3 py-2 rounded-md font-medium",
-                  (location.pathname === item.href || (location.pathname === '/' && item.href.startsWith('/#')))
+                  location.pathname === item.href
                     ? "bg-kitchenia-peach text-kitchenia-orange"
                     : "text-gray-700 hover:bg-kitchenia-peach hover:text-kitchenia-orange"
                 )}
