@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { addToCart } from "@/lib/cart";
 
 interface MenuItem {
   id: string;
@@ -67,29 +67,12 @@ const MenuItemDetailPage = () => {
   const handleAddToCart = () => {
     if (!menuItem) return;
     
-    // Get existing cart from localStorage or initialize empty array
-    const existingCart = localStorage.getItem('kitcheniaCart');
-    const cart = existingCart ? JSON.parse(existingCart) : [];
-    
-    // Check if item already exists in cart
-    const existingItemIndex = cart.findIndex((item: {id: string}) => item.id === menuItem.id);
-    
-    if (existingItemIndex !== -1) {
-      // Update quantity if item exists
-      cart[existingItemIndex].quantity += quantity;
-    } else {
-      // Add new item to cart
-      cart.push({
-        id: menuItem.id,
-        name: menuItem.name,
-        price: menuItem.price,
-        image_url: menuItem.image_url,
-        quantity: quantity
-      });
-    }
-    
-    // Save updated cart to localStorage
-    localStorage.setItem('kitcheniaCart', JSON.stringify(cart));
+    addToCart({
+      id: menuItem.id,
+      name: menuItem.name,
+      price: menuItem.price,
+      image_url: menuItem.image_url
+    }, quantity);
     
     toast({
       title: "Added to cart",

@@ -1,4 +1,3 @@
-
 import MenuSection from "@/components/MenuSection";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronRight, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { getCartItemCount } from "@/lib/cart";
 
 const MenuPage = () => {
   const [cartItemCount, setCartItemCount] = useState(0);
@@ -14,12 +14,7 @@ const MenuPage = () => {
   // Update cart count when localStorage changes
   useEffect(() => {
     const updateCartCount = () => {
-      const cart = localStorage.getItem('kitcheniaCart');
-      if (cart) {
-        const cartItems = JSON.parse(cart);
-        const count = cartItems.reduce((total: number, item: { quantity: number }) => total + item.quantity, 0);
-        setCartItemCount(count);
-      }
+      setCartItemCount(getCartItemCount());
     };
 
     // Initial count
@@ -28,7 +23,7 @@ const MenuPage = () => {
     // Listen for storage events
     window.addEventListener('storage', updateCartCount);
     
-    // Custom event for when we update cart ourselves
+    // Listen for custom cart update events
     window.addEventListener('cartUpdated', updateCartCount);
     
     return () => {
@@ -102,7 +97,7 @@ const MenuPage = () => {
                 <Link to="/order" className="flex items-center">
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   View Cart
-                  <Badge variant="secondary" className="bg-white text-kitchenia-orange ml-2">
+                  <Badge variant="count" className="ml-2">
                     {cartItemCount}
                   </Badge>
                 </Link>

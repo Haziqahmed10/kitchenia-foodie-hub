@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { getCartItemCount } from "@/lib/cart";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,12 +25,7 @@ const Navbar = () => {
   // Update cart count when localStorage changes
   useEffect(() => {
     const updateCartCount = () => {
-      const cart = localStorage.getItem('kitcheniaCart');
-      if (cart) {
-        const cartItems = JSON.parse(cart);
-        const count = cartItems.reduce((total: number, item: { quantity: number }) => total + item.quantity, 0);
-        setCartItemCount(count);
-      }
+      setCartItemCount(getCartItemCount());
     };
 
     // Initial count
@@ -39,7 +34,7 @@ const Navbar = () => {
     // Listen for storage events
     window.addEventListener('storage', updateCartCount);
     
-    // Custom event for when we update cart ourselves
+    // Listen for custom cart update events
     window.addEventListener('cartUpdated', updateCartCount);
 
     // Add scroll listener for navbar styling
@@ -91,7 +86,7 @@ const Navbar = () => {
                 <ShoppingCart className="h-5 w-5" />
                 <span>Cart</span>
                 {cartItemCount > 0 && (
-                  <Badge variant="secondary" className="bg-white text-kitchenia-orange ml-1">
+                  <Badge variant="count" className="ml-1">
                     {cartItemCount}
                   </Badge>
                 )}
@@ -104,7 +99,7 @@ const Navbar = () => {
             <Link to="/order" className="relative">
               <ShoppingCart className="h-6 w-6 text-kitchenia-orange" />
               {cartItemCount > 0 && (
-                <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                <Badge variant="count" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
                   {cartItemCount}
                 </Badge>
               )}
