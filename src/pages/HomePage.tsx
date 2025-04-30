@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
 import MenuSection from "@/components/MenuSection";
 import AboutSection from "@/components/AboutSection";
@@ -7,8 +8,56 @@ import CTASection from "@/components/CTASection";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  category: string;
+}
 
 const HomePage = () => {
+  const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const fetchFeaturedItems = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('active', true)
+          .limit(3);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setFeaturedItems(data);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error loading featured menu items",
+          description: error.message || "Failed to load menu items",
+          variant: "destructive",
+        });
+        console.error("Error fetching featured menu items:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedItems();
+  }, [toast]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -27,18 +76,35 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 5].map((id) => {
-              const item = menuItems.find(item => item.id === id);
-              if (!item) return null;
-              
-              return (
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((id) => (
+                <div key={id} className="food-card">
+                  <Skeleton className="h-48 w-full" />
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <Skeleton className="h-6 w-36" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                    <Skeleton className="h-4 w-full mb-1" />
+                    <Skeleton className="h-4 w-3/4 mb-4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featuredItems.map((item) => (
                 <div key={item.id} className="food-card group">
                   <div className="h-48 overflow-hidden">
                     <img 
-                      src={item.image} 
+                      src={item.image_url || '/placeholder.svg'} 
                       alt={item.name} 
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   <div className="p-4">
@@ -49,9 +115,9 @@ const HomePage = () => {
                     <p className="text-gray-600 text-sm mb-4">{item.description}</p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
           
           <div className="mt-12 text-center">
             <Button asChild size="lg" className="bg-kitchenia-orange hover:bg-orange-600">
@@ -67,33 +133,5 @@ const HomePage = () => {
     </motion.div>
   );
 };
-
-// This is just for the HomePage component to show menu highlights
-const menuItems = [
-  {
-    id: 1,
-    name: "Classic Chicken Shawarma",
-    description: "Tender chicken wrapped in freshly made roti with garlic sauce and pickles",
-    price: 350,
-    image: "https://images.unsplash.com/photo-1604467715878-83e57e8bc129?q=80&w=1000&auto=format&fit=crop",
-    category: "shawarma"
-  },
-  {
-    id: 2,
-    name: "Beef Shawarma Special",
-    description: "Juicy beef with tahini sauce, pickled vegetables and fresh herbs",
-    price: 400,
-    image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?q=80&w=1000&auto=format&fit=crop",
-    category: "shawarma"
-  },
-  {
-    id: 5,
-    name: "Veggie Wrap",
-    description: "Fresh vegetables with hummus and our special dressing",
-    price: 250,
-    image: "https://images.unsplash.com/photo-1600850056064-a8b380df8395?q=80&w=1000&auto=format&fit=crop",
-    category: "wrap"
-  },
-];
 
 export default HomePage;

@@ -12,6 +12,8 @@ import AboutPage from "./pages/AboutPage";
 import OrderPage from "./pages/OrderPage";
 import NotFound from "./pages/NotFound";
 import TestimonialDetailPage from "./pages/TestimonialDetailPage";
+import AdminPage from "./pages/AdminPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="testimonial/:id" element={<TestimonialDetailPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </AnimatePresence>
       </BrowserRouter>

@@ -1,71 +1,78 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
 
 interface MenuItem {
-  id: number;
+  id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
-  image: string;
+  image_url: string | null;
   category: string;
+  active: boolean | null;
 }
-
-const menuItems: MenuItem[] = [
-  {
-    id: 1,
-    name: "Classic Chicken Shawarma",
-    description: "Tender chicken wrapped in freshly made roti with garlic sauce and pickles",
-    price: 350,
-    image: "https://images.unsplash.com/photo-1604467715878-83e57e8bc129?q=80&w=1000&auto=format&fit=crop",
-    category: "shawarma"
-  },
-  {
-    id: 2,
-    name: "Beef Shawarma Special",
-    description: "Juicy beef with tahini sauce, pickled vegetables and fresh herbs",
-    price: 400,
-    image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?q=80&w=1000&auto=format&fit=crop",
-    category: "shawarma"
-  },
-  {
-    id: 3,
-    name: "Aloo Paratha",
-    description: "Whole wheat paratha stuffed with spiced potatoes and served with yogurt",
-    price: 200,
-    image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=1000&auto=format&fit=crop",
-    category: "paratha"
-  },
-  {
-    id: 4,
-    name: "Chicken Cheese Paratha",
-    description: "Flaky paratha with chicken and cheese stuffing",
-    price: 280,
-    image: "https://images.unsplash.com/photo-1628294895950-9805252327bc?q=80&w=1000&auto=format&fit=crop",
-    category: "paratha"
-  },
-  {
-    id: 5,
-    name: "Veggie Wrap",
-    description: "Fresh vegetables with hummus and our special dressing",
-    price: 250,
-    image: "https://images.unsplash.com/photo-1600850056064-a8b380df8395?q=80&w=1000&auto=format&fit=crop",
-    category: "wrap"
-  },
-  {
-    id: 6,
-    name: "Chicken Tikka Wrap",
-    description: "Spicy chicken tikka wrapped with mint chutney and salad",
-    price: 320,
-    image: "https://images.unsplash.com/photo-1550317138-10000687a72b?q=80&w=1000&auto=format&fit=crop",
-    category: "wrap"
-  },
-];
 
 const MenuSection = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('active', true);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setMenuItems(data);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error loading menu",
+          description: error.message || "Failed to load menu items",
+          variant: "destructive",
+        });
+        console.error("Error fetching menu items:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenuItems();
+
+    // Set up a realtime subscription for menu updates
+    const channel = supabase
+      .channel('menu_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'menu_items' 
+        }, 
+        () => {
+          // Refetch data when changes occur
+          fetchMenuItems();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
   
   const filteredItems = activeTab === "all" 
     ? menuItems 
@@ -84,30 +91,55 @@ const MenuSection = () => {
         </div>
         
         <TabsContent value={activeTab} className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredItems.map((item) => (
-              <div key={item.id} className="food-card group">
-                <div className="h-52 overflow-hidden relative">
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="absolute bottom-2 right-2 bg-kitchenia-orange text-white px-2 py-1 rounded-md font-bold">
-                    Rs. {item.price}
-                  </span>
+          {loading ? (
+            // Loading state - show skeletons
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <div key={item} className="food-card">
+                  <Skeleton className="h-52 w-full" />
+                  <div className="p-4">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-2/3 mb-4" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2">{item.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-                  <Button asChild variant="outline" className="w-full border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
-                    <Link to={`/order?item=${item.id}`}>Order Now</Link>
-                  </Button>
+              ))}
+            </div>
+          ) : filteredItems.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredItems.map((item) => (
+                <div key={item.id} className="food-card group">
+                  <div className="h-52 overflow-hidden relative">
+                    <img 
+                      src={item.image_url || '/placeholder.svg'} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder.svg';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="absolute bottom-2 right-2 bg-kitchenia-orange text-white px-2 py-1 rounded-md font-bold">
+                      Rs. {item.price}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{item.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{item.description}</p>
+                    <Button asChild variant="outline" className="w-full border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
+                      <Link to={`/order?item=${item.id}`}>Order Now</Link>
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No menu items found in this category.</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

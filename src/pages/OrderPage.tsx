@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -15,71 +15,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MenuItem {
-  id: number;
+  id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
-  image: string;
+  image_url: string | null;
   category: string;
+  active: boolean | null;
 }
-
-const menuItems: MenuItem[] = [
-  {
-    id: 1,
-    name: "Classic Chicken Shawarma",
-    description: "Tender chicken wrapped in freshly made roti with garlic sauce and pickles",
-    price: 350,
-    image: "https://images.unsplash.com/photo-1604467715878-83e57e8bc129?q=80&w=1000&auto=format&fit=crop",
-    category: "shawarma"
-  },
-  {
-    id: 2,
-    name: "Beef Shawarma Special",
-    description: "Juicy beef with tahini sauce, pickled vegetables and fresh herbs",
-    price: 400,
-    image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?q=80&w=1000&auto=format&fit=crop",
-    category: "shawarma"
-  },
-  {
-    id: 3,
-    name: "Aloo Paratha",
-    description: "Whole wheat paratha stuffed with spiced potatoes and served with yogurt",
-    price: 200,
-    image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=1000&auto=format&fit=crop",
-    category: "paratha"
-  },
-  {
-    id: 4,
-    name: "Chicken Cheese Paratha",
-    description: "Flaky paratha with chicken and cheese stuffing",
-    price: 280,
-    image: "https://images.unsplash.com/photo-1628294895950-9805252327bc?q=80&w=1000&auto=format&fit=crop",
-    category: "paratha"
-  },
-  {
-    id: 5,
-    name: "Veggie Wrap",
-    description: "Fresh vegetables with hummus and our special dressing",
-    price: 250,
-    image: "https://images.unsplash.com/photo-1600850056064-a8b380df8395?q=80&w=1000&auto=format&fit=crop",
-    category: "wrap"
-  },
-  {
-    id: 6,
-    name: "Chicken Tikka Wrap",
-    description: "Spicy chicken tikka wrapped with mint chutney and salad",
-    price: 320,
-    image: "https://images.unsplash.com/photo-1550317138-10000687a72b?q=80&w=1000&auto=format&fit=crop",
-    category: "wrap"
-  },
-];
 
 const OrderPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const searchParams = new URLSearchParams(location.search);
   const preSelectedItemId = searchParams.get("item");
@@ -87,14 +41,7 @@ const OrderPage = () => {
   const [selectedItems, setSelectedItems] = useState<{
     item: MenuItem;
     quantity: number;
-  }[]>(
-    preSelectedItemId 
-      ? [{ 
-          item: menuItems.find(item => item.id === parseInt(preSelectedItemId)) || menuItems[0], 
-          quantity: 1 
-        }]
-      : []
-  );
+  }[]>([]);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -103,6 +50,45 @@ const OrderPage = () => {
     notes: "",
     paymentMethod: "cod" as "cod" | "easypaisa" | "jazzcash",
   });
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('active', true);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setMenuItems(data);
+          
+          // If there's a preselected item, add it to the order
+          if (preSelectedItemId && data.length > 0) {
+            const selectedItem = data.find(item => item.id === preSelectedItemId);
+            if (selectedItem) {
+              setSelectedItems([{ item: selectedItem, quantity: 1 }]);
+            }
+          }
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error loading menu",
+          description: error.message || "Failed to load menu items",
+          variant: "destructive",
+        });
+        console.error("Error fetching menu items:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenuItems();
+  }, [preSelectedItemId, toast]);
   
   const handleItemSelect = (item: MenuItem) => {
     const existingItem = selectedItems.find((selectedItem) => selectedItem.item.id === item.id);
@@ -120,7 +106,7 @@ const OrderPage = () => {
     }
   };
   
-  const handleQuantityChange = (itemId: number, quantity: number) => {
+  const handleQuantityChange = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       setSelectedItems(selectedItems.filter((item) => item.item.id !== itemId));
     } else {
@@ -209,32 +195,54 @@ const OrderPage = () => {
         <div className="md:col-span-2">
           <h2 className="text-xl font-semibold mb-4">Menu Items</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {menuItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                <div className="h-40 overflow-hidden">
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">{item.description}</CardDescription>
-                </CardHeader>
-                <CardFooter className="flex justify-between border-t pt-4">
-                  <p className="font-medium text-kitchenia-orange">Rs. {item.price}</p>
-                  <Button 
-                    onClick={() => handleItemSelect(item)}
-                    className="bg-kitchenia-orange hover:bg-orange-600"
-                  >
-                    Add to Order
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <Card key={item} className="overflow-hidden">
+                  <Skeleton className="h-40 w-full" />
+                  <CardHeader className="pb-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-full mt-2" />
+                  </CardHeader>
+                  <CardFooter className="flex justify-between border-t pt-4">
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-9 w-28" />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {menuItems.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <div className="h-40 overflow-hidden">
+                    <img 
+                      src={item.image_url || '/placeholder.svg'} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder.svg';
+                      }}
+                    />
+                  </div>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{item.name}</CardTitle>
+                    <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="flex justify-between border-t pt-4">
+                    <p className="font-medium text-kitchenia-orange">Rs. {item.price}</p>
+                    <Button 
+                      onClick={() => handleItemSelect(item)}
+                      className="bg-kitchenia-orange hover:bg-orange-600"
+                    >
+                      Add to Order
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
         
         <div>
