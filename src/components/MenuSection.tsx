@@ -110,7 +110,7 @@ const MenuSection = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredItems.map((item) => (
                 <div key={item.id} className="food-card group">
-                  <div className="h-52 overflow-hidden relative">
+                  <Link to={`/menu/${item.id}`} className="h-52 overflow-hidden relative block">
                     <img 
                       src={item.image_url || '/placeholder.svg'} 
                       alt={item.name} 
@@ -124,13 +124,20 @@ const MenuSection = () => {
                     <span className="absolute bottom-2 right-2 bg-kitchenia-orange text-white px-2 py-1 rounded-md font-bold">
                       Rs. {item.price}
                     </span>
-                  </div>
+                  </Link>
                   <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">{item.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-                    <Button asChild variant="outline" className="w-full border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
-                      <Link to={`/order?item=${item.id}`}>Order Now</Link>
-                    </Button>
+                    <Link to={`/menu/${item.id}`}>
+                      <h3 className="font-bold text-lg mb-2 hover:text-kitchenia-orange transition-colors">{item.name}</h3>
+                    </Link>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                    <div className="flex space-x-2">
+                      <Button asChild variant="outline" className="flex-1 border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
+                        <Link to={`/menu/${item.id}`}>View Details</Link>
+                      </Button>
+                      <Button asChild className="flex-1 bg-kitchenia-orange hover:bg-orange-600">
+                        <Link to={`/order?item=${item.id}`}>Order</Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

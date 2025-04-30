@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import TestimonialDetailPage from "./pages/TestimonialDetailPage";
 import AdminPage from "./pages/AdminPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import MenuItemDetailPage from "./pages/MenuItemDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="menu" element={<MenuPage />} />
+              <Route path="menu/:id" element={<MenuItemDetailPage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="order" element={<OrderPage />} />
               <Route path="testimonial/:id" element={<TestimonialDetailPage />} />
