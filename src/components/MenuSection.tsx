@@ -82,15 +82,15 @@ const MenuSection = () => {
     <div>
       <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
         <div className="flex justify-center mb-8">
-          <TabsList className="bg-white shadow-md">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="shawarma">Shawarma</TabsTrigger>
-            <TabsTrigger value="paratha">Parathas</TabsTrigger>
-            <TabsTrigger value="wrap">Wraps</TabsTrigger>
+          <TabsList className="bg-white shadow-md rounded-full p-1">
+            <TabsTrigger value="all" className="rounded-full px-6">All</TabsTrigger>
+            <TabsTrigger value="shawarma" className="rounded-full px-6">Shawarma</TabsTrigger>
+            <TabsTrigger value="paratha" className="rounded-full px-6">Parathas</TabsTrigger>
+            <TabsTrigger value="wrap" className="rounded-full px-6">Wraps</TabsTrigger>
           </TabsList>
         </div>
         
-        <TabsContent value={activeTab} className="mt-0">
+        <TabsContent value={activeTab} className="mt-0 focus-visible:outline-none">
           {loading ? (
             // Loading state - show skeletons
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -108,20 +108,24 @@ const MenuSection = () => {
             </div>
           ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredItems.map((item) => (
-                <div key={item.id} className="food-card group">
+              {filteredItems.map((item, index) => (
+                <div key={item.id} className="food-card group hover-lift stagger-item animate-fade-in opacity-0" style={{animationDelay: `${index * 0.1}s`}}>
                   <Link to={`/menu/${item.id}`} className="h-52 overflow-hidden relative block">
                     <img 
                       src={item.image_url || '/placeholder.svg'} 
                       alt={item.name} 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = '/placeholder.svg';
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <span className="absolute bottom-2 right-2 bg-kitchenia-orange text-white px-2 py-1 rounded-md font-bold">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                      <div className="p-4 w-full">
+                        <h3 className="text-white font-bold text-lg mb-1 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{item.name}</h3>
+                      </div>
+                    </div>
+                    <span className="absolute top-2 right-2 bg-kitchenia-orange text-white px-3 py-1 rounded-full font-bold shadow-md">
                       Rs. {item.price}
                     </span>
                   </Link>

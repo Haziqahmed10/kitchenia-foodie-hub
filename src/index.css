@@ -53,8 +53,13 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -67,17 +72,70 @@
 }
 
 .food-card {
-  @apply bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-lg hover:-translate-y-1;
+  @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-2;
 }
 
 .btn-primary {
-  @apply bg-kitchenia-orange text-white px-6 py-3 rounded-md font-medium shadow-sm hover:bg-orange-600 transition-colors duration-200;
+  @apply bg-kitchenia-orange text-white px-6 py-3 rounded-md font-medium shadow-sm hover:bg-orange-600 transition-colors duration-300;
 }
 
 .btn-secondary {
-  @apply bg-white text-kitchenia-orange border border-kitchenia-orange px-6 py-3 rounded-md font-medium shadow-sm hover:bg-kitchenia-peach transition-colors duration-200;
+  @apply bg-white text-kitchenia-orange border border-kitchenia-orange px-6 py-3 rounded-md font-medium shadow-sm hover:bg-kitchenia-peach transition-colors duration-300;
 }
 
 .btn-text {
-  @apply text-kitchenia-orange font-medium hover:text-orange-600 transition-colors duration-200;
+  @apply text-kitchenia-orange font-medium hover:text-orange-600 transition-colors duration-300;
+}
+
+/* Enhanced animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth image transitions */
+.img-transition {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+/* Enhanced card styles */
+.glass-card {
+  @apply bg-white/90 backdrop-blur-sm border border-white/20 shadow-md;
 }
