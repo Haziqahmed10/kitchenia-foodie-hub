@@ -60,6 +60,87 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_name: string
+          order_id: string
+          price: number
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_name: string
+          order_id: string
+          price: number
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_name?: string
+          order_id?: string
+          price?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          payment_method: string
+          phone: string
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          payment_method: string
+          phone: string
+          status?: string
+          total_amount: number
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          payment_method?: string
+          phone?: string
+          status?: string
+          total_amount?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

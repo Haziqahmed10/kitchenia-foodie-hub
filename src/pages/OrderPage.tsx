@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { getCartItems, clearCart } from "@/lib/cart";
 
 interface MenuItem {
   id: string;
@@ -34,6 +35,7 @@ const OrderPage = () => {
   const { toast } = useToast();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   
   const searchParams = new URLSearchParams(location.search);
   const preSelectedItemId = searchParams.get("item");
@@ -73,6 +75,25 @@ const OrderPage = () => {
             if (selectedItem) {
               setSelectedItems([{ item: selectedItem, quantity: 1 }]);
             }
+          }
+
+          // Check for items in cart
+          const cartItems = getCartItems();
+          if (cartItems.length > 0) {
+            // Transform cart items to match the selectedItems format
+            const selectedFromCart = cartItems.map(cartItem => {
+              const menuItem = data.find(item => item.id === cartItem.id);
+              if (menuItem) {
+                return {
+                  item: menuItem,
+                  quantity: cartItem.quantity
+                };
+              }
+              // This should not happen if cart is properly synchronized
+              return null;
+            }).filter(item => item !== null) as { item: MenuItem; quantity: number }[];
+            
+            setSelectedItems(selectedFromCart);
           }
         }
       } catch (error: any) {
@@ -142,7 +163,7 @@ const OrderPage = () => {
     );
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (selectedItems.length === 0) {
@@ -162,24 +183,85 @@ const OrderPage = () => {
       });
       return;
     }
-    
-    toast({
-      title: "Order submitted successfully!",
-      description: "We will contact you shortly to confirm your order.",
-    });
-    
-    // Reset form after submission
-    setSelectedItems([]);
-    setFormData({
-      name: "",
-      phone: "",
-      address: "",
-      notes: "",
-      paymentMethod: "cod",
-    });
-    
-    // In a real app, you would submit the order to a server here
-    console.log("Order submitted:", { items: selectedItems, ...formData });
+
+    try {
+      setSubmitting(true);
+
+      // Calculate total amount
+      const totalAmount = calculateTotal();
+
+      // First insert the order and get the order ID
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          notes: formData.notes || null,
+          payment_method: formData.paymentMethod,
+          total_amount: totalAmount,
+        })
+        .select('id')
+        .single();
+
+      if (orderError) {
+        throw orderError;
+      }
+
+      if (!orderData) {
+        throw new Error("Failed to create order");
+      }
+
+      // Now insert all the order items
+      const orderItems = selectedItems.map(({ item, quantity }) => ({
+        order_id: orderData.id,
+        item_id: item.id,
+        item_name: item.name,
+        price: item.price,
+        quantity: quantity
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      // Success! Clear the cart and show success message
+      clearCart();
+      
+      toast({
+        title: "Order submitted successfully!",
+        description: "We will contact you shortly to confirm your order.",
+      });
+      
+      // Reset form after submission
+      setSelectedItems([]);
+      setFormData({
+        name: "",
+        phone: "",
+        address: "",
+        notes: "",
+        paymentMethod: "cod",
+      });
+
+      // Navigate user back to the menu page after a short delay
+      setTimeout(() => {
+        navigate('/menu');
+      }, 2000);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error submitting order",
+        description: error.message || "Failed to submit your order. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error submitting order:", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
   
   return (
@@ -214,8 +296,9 @@ const OrderPage = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {menuItems.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <div className="h-40 overflow-hidden">
+                <Card key={item.id} className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200" 
+                      onClick={() => handleItemSelect(item)}>
+                  <div className="h-40 overflow-hidden relative">
                     <img 
                       src={item.image_url || '/placeholder.svg'} 
                       alt={item.name} 
@@ -225,16 +308,21 @@ const OrderPage = () => {
                         target.src = '/placeholder.svg';
                       }}
                     />
+                    <span className="absolute top-2 right-2 bg-kitchenia-orange text-white px-3 py-1 rounded-full font-bold shadow-md">
+                      Rs. {item.price}
+                    </span>
                   </div>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg">{item.name}</CardTitle>
                     <CardDescription className="line-clamp-2">{item.description}</CardDescription>
                   </CardHeader>
                   <CardFooter className="flex justify-between border-t pt-4">
-                    <p className="font-medium text-kitchenia-orange">Rs. {item.price}</p>
                     <Button 
-                      onClick={() => handleItemSelect(item)}
-                      className="bg-kitchenia-orange hover:bg-orange-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleItemSelect(item);
+                      }}
+                      className="w-full bg-kitchenia-orange hover:bg-orange-600"
                     >
                       Add to Order
                     </Button>
@@ -360,9 +448,9 @@ const OrderPage = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-kitchenia-orange hover:bg-orange-600"
-                disabled={selectedItems.length === 0}
+                disabled={selectedItems.length === 0 || submitting}
               >
-                Submit Order
+                {submitting ? "Processing..." : "Submit Order"}
               </Button>
             </form>
           </div>
