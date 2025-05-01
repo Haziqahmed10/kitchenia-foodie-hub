@@ -96,7 +96,7 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {featuredItems.map((item) => (
                 <div key={item.id} className="food-card group">
-                  <div className="h-48 overflow-hidden">
+                  <div className="h-48 overflow-hidden relative">
                     <img 
                       src={item.image_url || '/placeholder.svg'} 
                       alt={item.name} 
@@ -106,6 +106,9 @@ const HomePage = () => {
                         target.src = '/placeholder.svg';
                       }}
                     />
+                    <span className="absolute top-2 right-2 bg-kitchenia-orange text-white px-3 py-1 rounded-full font-bold shadow-md">
+                      Rs. {item.price}
+                    </span>
                   </div>
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -113,6 +116,9 @@ const HomePage = () => {
                       <span className="text-kitchenia-orange font-semibold">Rs. {item.price}</span>
                     </div>
                     <p className="text-gray-600 text-sm mb-4">{item.description}</p>
+                    <Link to={`/menu/${item.id}`} className="text-kitchenia-orange font-medium hover:underline block text-center">
+                      View Details
+                    </Link>
                   </div>
                 </div>
               ))}

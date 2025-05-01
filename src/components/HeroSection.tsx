@@ -20,7 +20,7 @@ const HeroSection = () => {
                 <Link to="/order">Order Now</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach hover:text-kitchenia-orange text-lg">
-                <Link to="/#menu">View Menu</Link>
+                <Link to="/menu">View Menu</Link>
               </Button>
             </div>
           </div>

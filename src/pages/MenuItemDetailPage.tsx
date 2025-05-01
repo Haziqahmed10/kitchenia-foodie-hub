@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,7 +113,7 @@ const MenuItemDetailPage = () => {
         </div>
       ) : menuItem ? (
         <div className="grid md:grid-cols-2 gap-8">
-          <div className="rounded-lg overflow-hidden">
+          <div className="rounded-lg overflow-hidden relative">
             <img 
               src={menuItem.image_url || '/placeholder.svg'} 
               alt={menuItem.name} 
@@ -122,6 +123,9 @@ const MenuItemDetailPage = () => {
                 target.src = '/placeholder.svg';
               }}
             />
+            <span className="absolute top-4 right-4 bg-kitchenia-orange text-white px-4 py-2 rounded-full font-bold shadow-md text-lg">
+              Rs. {menuItem.price}
+            </span>
           </div>
           
           <div>
