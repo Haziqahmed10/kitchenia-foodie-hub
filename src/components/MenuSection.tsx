@@ -109,8 +109,13 @@ const MenuSection = () => {
           ) : filteredItems.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredItems.map((item, index) => (
-                <div key={item.id} className="food-card group hover-lift stagger-item animate-fade-in opacity-0" style={{animationDelay: `${index * 0.1}s`}}>
-                  <Link to={`/menu/${item.id}`} className="h-52 overflow-hidden relative block">
+                <Link 
+                  to={`/menu/${item.id}`} 
+                  key={item.id} 
+                  className="food-card group hover-lift stagger-item animate-fade-in opacity-0 cursor-pointer" 
+                  style={{animationDelay: `${index * 0.1}s`}}
+                >
+                  <div className="h-52 overflow-hidden relative">
                     <img 
                       src={item.image_url || '/placeholder.svg'} 
                       alt={item.name} 
@@ -128,22 +133,15 @@ const MenuSection = () => {
                     <span className="absolute top-2 right-2 bg-kitchenia-orange text-white px-3 py-1 rounded-full font-bold shadow-md">
                       Rs. {item.price}
                     </span>
-                  </Link>
+                  </div>
                   <div className="p-4">
-                    <Link to={`/menu/${item.id}`}>
-                      <h3 className="font-bold text-lg mb-2 hover:text-kitchenia-orange transition-colors">{item.name}</h3>
-                    </Link>
+                    <h3 className="font-bold text-lg mb-2 hover:text-kitchenia-orange transition-colors">{item.name}</h3>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
-                    <div className="flex space-x-2">
-                      <Button asChild variant="outline" className="flex-1 border-kitchenia-orange text-kitchenia-orange hover:bg-kitchenia-peach">
-                        <Link to={`/menu/${item.id}`}>View Details</Link>
-                      </Button>
-                      <Button asChild className="flex-1 bg-kitchenia-orange hover:bg-orange-600">
-                        <Link to={`/order?item=${item.id}`}>Order</Link>
-                      </Button>
+                    <div className="flex justify-center">
+                      <span className="text-kitchenia-orange font-medium">View Details</span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
