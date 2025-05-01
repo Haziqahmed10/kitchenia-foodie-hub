@@ -13,6 +13,7 @@ import OrderPage from "./pages/OrderPage";
 import NotFound from "./pages/NotFound";
 import TestimonialDetailPage from "./pages/TestimonialDetailPage";
 import AdminPage from "./pages/AdminPage";
+import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import MenuItemDetailPage from "./pages/MenuItemDetailPage";
 
@@ -43,6 +44,7 @@ const AnimatedRoutes = () => {
         </Route>
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/orders" element={<AdminOrdersPage />} />
       </Routes>
     </AnimatePresence>
   );

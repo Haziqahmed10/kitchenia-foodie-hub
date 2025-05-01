@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { motion } from 'framer-motion';
-import { Check, ChevronDown, ChevronUp, Edit, Save, Trash2, X, Plus } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Edit, Save, Trash2, X, Plus, ShoppingBag } from 'lucide-react';
 
 interface MenuItem {
   id: string;
@@ -273,7 +272,17 @@ const AdminPage = () => {
     >
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <Button onClick={handleLogout} variant="outline">Logout</Button>
+        <div className="space-x-2">
+          <Button 
+            onClick={() => navigate('/admin/orders')} 
+            variant="outline"
+            className="mr-2"
+          >
+            <ShoppingBag className="mr-2 h-4 w-4" />
+            View Orders
+          </Button>
+          <Button onClick={handleLogout} variant="outline">Logout</Button>
+        </div>
       </div>
       
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
