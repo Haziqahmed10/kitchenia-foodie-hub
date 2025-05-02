@@ -16,6 +16,7 @@ import AdminPage from "./pages/AdminPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import MenuItemDetailPage from "./pages/MenuItemDetailPage";
+import TrackOrderPage from "./pages/TrackOrderPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ const AnimatedRoutes = () => {
           <Route path="menu/:id" element={<MenuItemDetailPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="order" element={<OrderPage />} />
+          <Route path="track" element={<TrackOrderPage />} />
           <Route path="testimonial/:id" element={<TestimonialDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

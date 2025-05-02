@@ -1,151 +1,195 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { getCartItemCount } from "@/lib/cart";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
-  const [scrolled, setScrolled] = useState(false);
-  const location = useLocation();
-  
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Menu', href: '/menu' },
-    { name: 'About', href: '/about' },
-    { name: 'Order', href: '/order' },
-  ];
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
 
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
-  // Update cart count when localStorage changes
-  useEffect(() => {
-    const updateCartCount = () => {
-      setCartItemCount(getCartItemCount());
-    };
-
-    // Initial count
-    updateCartCount();
-
-    // Listen for storage events
-    window.addEventListener('storage', updateCartCount);
-    
-    // Listen for custom cart update events
-    window.addEventListener('cartUpdated', updateCartCount);
-
-    // Add scroll listener for navbar styling
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('storage', updateCartCount);
-      window.removeEventListener('cartUpdated', updateCartCount);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully!",
+        description: "You have been signed out.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error signing out",
+        description: error.message || "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <nav className={cn(
-      "sticky top-0 z-50 transition-all duration-300",
-      scrolled ? "bg-white/95 backdrop-blur-sm shadow-md" : "bg-white shadow-sm"
-    )}>
+    <motion.nav
+      className="bg-white shadow-md sticky top-0 z-50"
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center">
-              <span className="text-kitchenia-orange font-display font-bold text-2xl">Kitchenia</span>
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0 font-bold text-2xl text-gray-800">
+              Kitchenia
             </Link>
+            <div className="hidden md:block">
+              <NavLinks />
+            </div>
           </div>
-          
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center space-x-10">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "text-gray-700 hover:text-kitchenia-orange font-medium transition-colors relative group",
-                  location.pathname === item.href && "text-kitchenia-orange"
-                )}
-              >
-                {item.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-kitchenia-orange transition-all duration-300 group-hover:w-full"></span>
+          <div className="flex items-center">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.user_metadata?.avatar_url as string} alt={user?.user_metadata?.full_name as string} />
+                      <AvatarFallback>{(user?.user_metadata?.full_name as string)?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled>{user?.email}</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/admin/login">
+                <Button variant="outline">Admin Login</Button>
               </Link>
-            ))}
+            )}
           </div>
-          
-          <div className="hidden md:flex">
-            <Button asChild className="bg-kitchenia-orange hover:bg-orange-600 transition-all duration-300 rounded-full px-5">
-              <Link to="/order" className="flex items-center space-x-2">
-                <ShoppingCart className="h-5 w-5" />
-                <span>Cart</span>
-                {cartItemCount > 0 && (
-                  <Badge variant="count" className="ml-1">
-                    {cartItemCount}
-                  </Badge>
-                )}
-              </Link>
-            </Button>
-          </div>
-          
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-4">
-            <Link to="/order" className="relative">
-              <ShoppingCart className="h-6 w-6 text-kitchenia-orange" />
-              {cartItemCount > 0 && (
-                <Badge variant="count" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                  {cartItemCount}
-                </Badge>
-              )}
-            </Link>
+          <div className="-mr-2 flex md:hidden">
             <button
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-kitchenia-peach focus:outline-none transition-colors"
               onClick={toggleMenu}
+              type="button"
+              className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kitchenia-orange"
+              aria-expanded="false"
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              <span className="sr-only">Open main menu</span>
+              <svg
+                className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg
+                className={`${isMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white shadow-md animate-fade-in">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "block px-3 py-2 rounded-md font-medium transition-colors",
-                  location.pathname === item.href
-                    ? "bg-kitchenia-peach text-kitchenia-orange"
-                    : "text-gray-700 hover:bg-kitchenia-peach hover:text-kitchenia-orange"
-                )}
-                onClick={closeMenu}
-              >
-                {item.name}
-              </Link>
-            ))}
-            <div className="mt-4 px-3">
-              <Button asChild className="w-full bg-kitchenia-orange hover:bg-orange-600 transition-all duration-300">
-                <Link to="/order" onClick={closeMenu} className="flex items-center justify-center">
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  View Cart {cartItemCount > 0 && `(${cartItemCount})`}
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </nav>
+      <MobileMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+    </motion.nav>
   );
 };
+
+const NavLinks = () => (
+  <div className="ml-10 flex items-baseline space-x-4">
+    <Link
+      to="/"
+      className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
+    >
+      Home
+    </Link>
+    <Link
+      to="/menu"
+      className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
+    >
+      Menu
+    </Link>
+    <Link
+      to="/about"
+      className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
+    >
+      About
+    </Link>
+    <Link
+      to="/order"
+      className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
+    >
+      Order
+    </Link>
+    <li>
+  <Link 
+    to="/track" 
+    className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
+  >
+    Track Order
+  </Link>
+</li>
+  </div>
+);
+
+const MobileMenu = ({ isOpen, toggleMenu }: { isOpen: boolean; toggleMenu: () => void }) => (
+  <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
+    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+      <Link
+        to="/"
+        className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+      >
+        Home
+      </Link>
+      <Link
+        to="/menu"
+        className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+      >
+        Menu
+      </Link>
+      <Link
+        to="/about"
+        className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+      >
+        About
+      </Link>
+      <Link
+        to="/order"
+        className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+      >
+        Order
+      </Link>
+      <Link
+        to="/track"
+        className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+      >
+        Track Order
+      </Link>
+    </div>
+  </div>
+);
 
 export default Navbar;

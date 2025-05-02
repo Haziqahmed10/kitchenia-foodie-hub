@@ -105,6 +105,38 @@ export type Database = {
           },
         ]
       }
+      order_status_history: {
+        Row: {
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+          status_timestamp: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: string
+          status_timestamp?: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+          status_timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           address: string
@@ -114,8 +146,11 @@ export type Database = {
           notes: string | null
           payment_method: string
           phone: string
+          shipment_carrier: string | null
           status: string
           total_amount: number
+          tracking_number: string | null
+          tracking_url: string | null
         }
         Insert: {
           address: string
@@ -125,8 +160,11 @@ export type Database = {
           notes?: string | null
           payment_method: string
           phone: string
+          shipment_carrier?: string | null
           status?: string
           total_amount: number
+          tracking_number?: string | null
+          tracking_url?: string | null
         }
         Update: {
           address?: string
@@ -136,8 +174,11 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           phone?: string
+          shipment_carrier?: string | null
           status?: string
           total_amount?: number
+          tracking_number?: string | null
+          tracking_url?: string | null
         }
         Relationships: []
       }
