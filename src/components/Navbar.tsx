@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -92,7 +93,7 @@ const Navbar = () => {
               <svg
                 className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
                 xmlns="http://www.w3.org/2000/svg"
-                fill="none",
+                fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 aria-hidden="true"
@@ -144,14 +145,12 @@ const NavLinks = () => (
     >
       Order
     </Link>
-    <li>
-  <Link 
-    to="/track" 
-    className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
-  >
-    Track Order
-  </Link>
-</li>
+    <Link 
+      to="/track" 
+      className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
+    >
+      Track Order
+    </Link>
   </div>
 );
 
