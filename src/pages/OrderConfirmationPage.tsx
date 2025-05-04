@@ -67,7 +67,18 @@ const OrderConfirmationPage = () => {
         }
 
         if (data) {
-          setOrder(data as OrderDetails);
+          // Generate default values for missing fields
+          const orderCode = data.order_code || `CK-${data.id.substring(0, 4)}`;
+          const estimatedDeliveryTime = data.estimated_delivery_time || "30-45 minutes";
+          
+          // Create complete order object with generated fields if necessary
+          const completeOrder: OrderDetails = {
+            ...data,
+            order_code: orderCode,
+            estimated_delivery_time: estimatedDeliveryTime
+          } as OrderDetails;
+          
+          setOrder(completeOrder);
         }
       } catch (error: any) {
         toast({
@@ -103,7 +114,16 @@ const OrderConfirmationPage = () => {
               .single();
 
             if (!refreshError && refreshedOrder) {
-              setOrder(refreshedOrder as OrderDetails);
+              // Generate default values for missing fields again
+              const orderCode = refreshedOrder.order_code || `CK-${refreshedOrder.id.substring(0, 4)}`;
+              const estimatedDeliveryTime = refreshedOrder.estimated_delivery_time || "30-45 minutes";
+              
+              // Update order with the refreshed data and generated fields
+              setOrder({
+                ...refreshedOrder,
+                order_code: orderCode,
+                estimated_delivery_time: estimatedDeliveryTime
+              } as OrderDetails);
               
               toast({
                 title: "Order Updated",

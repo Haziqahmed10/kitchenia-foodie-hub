@@ -198,19 +198,15 @@ const OrderPage = () => {
       // Get the next order number
       const { data: lastOrder, error: countError } = await supabase
         .from('orders')
-        .select('order_code')
+        .select('id')
         .order('created_at', { ascending: false })
         .limit(1);
       
       let orderNumber = 1001;
       if (!countError && lastOrder && lastOrder.length > 0) {
-        const lastOrderCode = lastOrder[0].order_code;
-        if (lastOrderCode && lastOrderCode.includes('-')) {
-          const lastNum = parseInt(lastOrderCode.split('-')[1]);
-          if (!isNaN(lastNum)) {
-            orderNumber = lastNum + 1;
-          }
-        }
+        // Generate incremental order number without relying on order_code property
+        const lastId = lastOrder[0].id;
+        orderNumber = lastId ? 1000 + parseInt(lastId.substring(0, 4), 16) % 9000 : 1001;
       }
       
       const orderCode = `CK-${orderNumber}`;

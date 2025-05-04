@@ -66,9 +66,12 @@ const MyOrdersPage = () => {
               .map((item: any) => `${item.quantity} ${item.item_name}`)
               .join(", ");
             
+            // Generate order code if it doesn't exist
+            const orderCode = order.order_code || `CK-${order.id.substring(0, 4)}`;
+            
             return {
               id: order.id,
-              order_code: order.order_code,
+              order_code: orderCode,
               created_at: order.created_at,
               total_amount: order.total_amount,
               status: order.status,
