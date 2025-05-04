@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -189,6 +188,36 @@ const OrderPage = () => {
 
       // Calculate total amount
       const totalAmount = calculateTotal();
+      
+      // Generate customer-friendly order code
+      const currentDate = new Date();
+      const dateStr = currentDate.getFullYear().toString().substring(2) +
+                     (currentDate.getMonth() + 1).toString().padStart(2, '0') +
+                     currentDate.getDate().toString().padStart(2, '0');
+      
+      // Get the next order number
+      const { data: lastOrder, error: countError } = await supabase
+        .from('orders')
+        .select('order_code')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      let orderNumber = 1001;
+      if (!countError && lastOrder && lastOrder.length > 0) {
+        const lastOrderCode = lastOrder[0].order_code;
+        if (lastOrderCode && lastOrderCode.includes('-')) {
+          const lastNum = parseInt(lastOrderCode.split('-')[1]);
+          if (!isNaN(lastNum)) {
+            orderNumber = lastNum + 1;
+          }
+        }
+      }
+      
+      const orderCode = `CK-${orderNumber}`;
+      
+      // Calculate estimated delivery time (30-45 minutes from now)
+      const deliveryDate = new Date(currentDate.getTime() + 45 * 60000);
+      const estimatedDeliveryTime = `${currentDate.getHours()}:${currentDate.getMinutes().toString().padStart(2, '0')} - ${deliveryDate.getHours()}:${deliveryDate.getMinutes().toString().padStart(2, '0')}`;
 
       // First insert the order and get the order ID
       const { data: orderData, error: orderError } = await supabase
@@ -200,6 +229,9 @@ const OrderPage = () => {
           notes: formData.notes || null,
           payment_method: formData.paymentMethod,
           total_amount: totalAmount,
+          order_code: orderCode,
+          status: 'preparing',
+          estimated_delivery_time: estimatedDeliveryTime
         })
         .select('id')
         .single();
@@ -229,28 +261,25 @@ const OrderPage = () => {
         throw itemsError;
       }
 
+      // Create an initial status entry in the order status history
+      await supabase
+        .from('order_status_history')
+        .insert({
+          order_id: orderData.id,
+          status: 'preparing',
+          notes: 'Order received and being prepared'
+        });
+
       // Success! Clear the cart and show success message
       clearCart();
       
       toast({
         title: "Order submitted successfully!",
-        description: "We will contact you shortly to confirm your order.",
+        description: `Your order code is ${orderCode}. We will prepare your food right away!`,
       });
       
-      // Reset form after submission
-      setSelectedItems([]);
-      setFormData({
-        name: "",
-        phone: "",
-        address: "",
-        notes: "",
-        paymentMethod: "cod",
-      });
-
-      // Navigate user back to the menu page after a short delay
-      setTimeout(() => {
-        navigate('/menu');
-      }, 2000);
+      // Navigate to the order confirmation page
+      navigate(`/order/${orderData.id}`);
       
     } catch (error: any) {
       toast({

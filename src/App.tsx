@@ -16,7 +16,9 @@ import AdminPage from "./pages/AdminPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import MenuItemDetailPage from "./pages/MenuItemDetailPage";
-import TrackOrderPage from "./pages/TrackOrderPage";
+import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import MyOrdersPage from "./pages/MyOrdersPage";
+import LoginPage from "./pages/LoginPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,13 +42,15 @@ const AnimatedRoutes = () => {
           <Route path="menu/:id" element={<MenuItemDetailPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="order" element={<OrderPage />} />
-          <Route path="track" element={<TrackOrderPage />} />
+          <Route path="order/:orderId" element={<OrderConfirmationPage />} />
+          <Route path="my-orders" element={<MyOrdersPage />} />
+          <Route path="login" element={<LoginPage />} />
           <Route path="testimonial/:id" element={<TestimonialDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/orders" element={<AdminOrdersPage />} />
+        <Route path="/admin-dashboard/login" element={<AdminLoginPage />} />
+        <Route path="/admin-dashboard" element={<AdminPage />} />
+        <Route path="/admin-dashboard/orders" element={<AdminOrdersPage />} />
       </Routes>
     </AnimatePresence>
   );

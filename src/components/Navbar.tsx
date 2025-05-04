@@ -73,12 +73,15 @@ const Navbar = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem disabled>{user?.email}</DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-orders">My Orders</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/admin/login">
-                <Button variant="outline">Admin Login</Button>
+              <Link to="/login">
+                <Button variant="outline">Sign In</Button>
               </Link>
             )}
           </div>
@@ -145,12 +148,6 @@ const NavLinks = () => (
     >
       Order
     </Link>
-    <Link 
-      to="/track" 
-      className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 px-4 py-2 rounded-md hover:bg-gray-100"
-    >
-      Track Order
-    </Link>
   </div>
 );
 
@@ -181,12 +178,14 @@ const MobileMenu = ({ isOpen, toggleMenu }: { isOpen: boolean; toggleMenu: () =>
       >
         Order
       </Link>
-      <Link
-        to="/track"
-        className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
-      >
-        Track Order
-      </Link>
+      {isOpen && (
+        <Link
+          to="/my-orders"
+          className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+        >
+          My Orders
+        </Link>
+      )}
     </div>
   </div>
 );
