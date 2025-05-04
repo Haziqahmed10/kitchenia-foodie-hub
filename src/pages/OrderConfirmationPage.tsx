@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-interface OrderDetails {
+// Define an interface that matches what we get from the database
+interface OrderDataFromDB {
   id: string;
-  order_code: string;
   status: string;
   name: string;
   address: string;
@@ -26,7 +26,36 @@ interface OrderDetails {
   payment_method: string;
   total_amount: number;
   created_at: string;
-  estimated_delivery_time: string;
+  order_code?: string; // Optional since it might not exist in the database yet
+  estimated_delivery_time?: string; // Optional since it might not exist in the database yet
+  notes: string | null;
+  shipment_carrier: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  order_items: {
+    id: string;
+    item_name: string;
+    price: number;
+    quantity: number;
+  }[];
+}
+
+// Interface for our enhanced order with required fields
+interface OrderDetails {
+  id: string;
+  order_code: string; // Required in our app
+  status: string;
+  name: string;
+  address: string;
+  phone: string;
+  payment_method: string;
+  total_amount: number;
+  created_at: string;
+  estimated_delivery_time: string; // Required in our app
+  notes: string | null;
+  shipment_carrier: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
   order_items: {
     id: string;
     item_name: string;
@@ -67,16 +96,13 @@ const OrderConfirmationPage = () => {
         }
 
         if (data) {
-          // Generate default values for missing fields
-          const orderCode = data.order_code || `CK-${data.id.substring(0, 4)}`;
-          const estimatedDeliveryTime = data.estimated_delivery_time || "30-45 minutes";
-          
           // Create complete order object with generated fields if necessary
+          const orderData = data as OrderDataFromDB;
           const completeOrder: OrderDetails = {
-            ...data,
-            order_code: orderCode,
-            estimated_delivery_time: estimatedDeliveryTime
-          } as OrderDetails;
+            ...orderData,
+            order_code: orderData.order_code || `CK-${orderData.id.substring(0, 4)}`,
+            estimated_delivery_time: orderData.estimated_delivery_time || "30-45 minutes"
+          };
           
           setOrder(completeOrder);
         }
@@ -114,16 +140,13 @@ const OrderConfirmationPage = () => {
               .single();
 
             if (!refreshError && refreshedOrder) {
-              // Generate default values for missing fields again
-              const orderCode = refreshedOrder.order_code || `CK-${refreshedOrder.id.substring(0, 4)}`;
-              const estimatedDeliveryTime = refreshedOrder.estimated_delivery_time || "30-45 minutes";
-              
               // Update order with the refreshed data and generated fields
+              const refreshedOrderData = refreshedOrder as OrderDataFromDB;
               setOrder({
-                ...refreshedOrder,
-                order_code: orderCode,
-                estimated_delivery_time: estimatedDeliveryTime
-              } as OrderDetails);
+                ...refreshedOrderData,
+                order_code: refreshedOrderData.order_code || `CK-${refreshedOrderData.id.substring(0, 4)}`,
+                estimated_delivery_time: refreshedOrderData.estimated_delivery_time || "30-45 minutes"
+              });
               
               toast({
                 title: "Order Updated",

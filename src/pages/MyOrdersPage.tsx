@@ -27,6 +27,27 @@ interface OrderSummary {
   items_summary: string;
 }
 
+// Define an interface that matches what we get from the database
+interface OrderData {
+  id: string;
+  created_at: string;
+  total_amount: number;
+  status: string;
+  address: string;
+  name: string;
+  notes: string | null;
+  payment_method: string;
+  phone: string;
+  shipment_carrier: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  order_code?: string; // Optional since it might not exist in the database
+  order_items: Array<{
+    item_name: string;
+    quantity: number;
+  }>;
+}
+
 const MyOrdersPage = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -60,7 +81,7 @@ const MyOrdersPage = () => {
 
         if (ordersData) {
           // Process the order data to create summaries
-          const processedOrders = ordersData.map((order) => {
+          const processedOrders = ordersData.map((order: OrderData) => {
             // Create a summary of items (e.g., "2 Burgers, 1 Fries")
             const itemsSummary = order.order_items
               .map((item: any) => `${item.quantity} ${item.item_name}`)
