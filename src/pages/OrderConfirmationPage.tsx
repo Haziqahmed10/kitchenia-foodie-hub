@@ -4,17 +4,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Clock, Package } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/orders/LoadingState";
+import { OrderHeader } from "@/components/orders/OrderHeader";
+import { OrderTrackingInfo } from "@/components/orders/OrderTrackingInfo";
+import { OrderItemsList } from "@/components/orders/OrderItemsList";
+import { CustomerDetails } from "@/components/orders/CustomerDetails";
+import { OrderHistory } from "@/components/orders/OrderHistory";
 
 // Define an interface that matches what we get from the database
 interface OrderDataFromDB {
@@ -166,28 +167,8 @@ const OrderConfirmationPage = () => {
     return () => clearInterval(statusInterval);
   }, [orderId, navigate, toast, order?.status]);
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "preparing":
-        return "bg-yellow-100 text-yellow-800";
-      case "out for delivery":
-        return "bg-blue-100 text-blue-800";
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="section-container py-12 flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kitchenia-orange mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your order details...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (!order) {
@@ -220,61 +201,32 @@ const OrderConfirmationPage = () => {
         </div>
 
         <Card className="mb-6 overflow-hidden">
-          <div className="bg-kitchenia-orange p-4 text-white flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold">Order Code: {order.order_code}</h2>
-              <p className="text-sm opacity-90">Placed on {new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' })}</p>
-            </div>
-            <Badge className={getStatusBadgeColor(order.status)}>
-              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-            </Badge>
-          </div>
+          <OrderHeader 
+            orderCode={order.order_code} 
+            createdAt={order.created_at} 
+            status={order.status} 
+          />
           
           <CardContent className="p-6">
             <div className="grid gap-6">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                <Clock className="h-6 w-6 text-kitchenia-orange" />
-                <div>
-                  <h3 className="font-medium">Estimated Delivery Time</h3>
-                  <p className="text-gray-600">{order.estimated_delivery_time}</p>
-                </div>
-              </div>
+              <OrderTrackingInfo 
+                estimatedDeliveryTime={order.estimated_delivery_time}
+                shipmentCarrier={order.shipment_carrier}
+                trackingNumber={order.tracking_number}
+                trackingUrl={order.tracking_url}
+              />
               
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Order Items</h3>
-                <div className="space-y-3">
-                  {order.order_items.map((item) => (
-                    <div key={item.id} className="flex justify-between py-2 border-b">
-                      <div>
-                        <p className="font-medium">{item.item_name}</p>
-                        <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-                      </div>
-                      <p className="font-medium text-right">Rs. {item.price * item.quantity}</p>
-                    </div>
-                  ))}
-                  <div className="flex justify-between pt-3 font-bold text-lg">
-                    <p>Total</p>
-                    <p>Rs. {order.total_amount}</p>
-                  </div>
-                </div>
-              </div>
+              <OrderItemsList 
+                items={order.order_items} 
+                totalAmount={order.total_amount} 
+              />
               
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold mb-1">Delivery Address</h3>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="font-medium">{order.name}</p>
-                    <p className="text-gray-600">{order.address}</p>
-                    <p className="text-gray-600">{order.phone}</p>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Payment Method</h3>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="capitalize">{order.payment_method.replace('_', ' ')}</p>
-                  </div>
-                </div>
-              </div>
+              <CustomerDetails 
+                name={order.name}
+                address={order.address}
+                phone={order.phone}
+                paymentMethod={order.payment_method}
+              />
             </div>
           </CardContent>
           
@@ -289,6 +241,8 @@ const OrderConfirmationPage = () => {
             </div>
           </CardFooter>
         </Card>
+        
+        <OrderHistory />
         
         <div className="text-center mt-6 text-gray-500 text-sm">
           <p>Having issues with your order?</p>
