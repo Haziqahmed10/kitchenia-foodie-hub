@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -178,7 +178,7 @@ const OrderConfirmationPage = () => {
           <h1 className="text-2xl font-bold text-red-600">Order Not Found</h1>
           <p className="mt-4 text-gray-600">We couldn't find the order you're looking for.</p>
           <Button asChild className="mt-6">
-            <a href="/order">Place New Order</a>
+            <Link to="/order">Place New Order</Link>
           </Button>
         </div>
       </div>
@@ -233,10 +233,13 @@ const OrderConfirmationPage = () => {
           <CardFooter className="border-t p-6 bg-gray-50">
             <div className="w-full flex flex-col md:flex-row md:justify-between gap-4">
               <Button asChild variant="outline" className="flex-1">
-                <a href="/menu">Continue Shopping</a>
+                <Link to="/menu">Continue Shopping</Link>
+              </Button>
+              <Button asChild variant="outline" className="flex-1">
+                <Link to="/track">Track Order</Link>
               </Button>
               <Button asChild className="flex-1 bg-kitchenia-orange hover:bg-orange-600">
-                <a href="/my-orders">My Orders</a>
+                <Link to="/my-orders">My Orders</Link>
               </Button>
             </div>
           </CardFooter>

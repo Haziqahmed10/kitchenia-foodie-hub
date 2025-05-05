@@ -141,9 +141,11 @@ export type Database = {
         Row: {
           address: string
           created_at: string
+          estimated_delivery_time: string | null
           id: string
           name: string
           notes: string | null
+          order_code: string | null
           payment_method: string
           phone: string
           shipment_carrier: string | null
@@ -155,9 +157,11 @@ export type Database = {
         Insert: {
           address: string
           created_at?: string
+          estimated_delivery_time?: string | null
           id?: string
           name: string
           notes?: string | null
+          order_code?: string | null
           payment_method: string
           phone: string
           shipment_carrier?: string | null
@@ -169,9 +173,11 @@ export type Database = {
         Update: {
           address?: string
           created_at?: string
+          estimated_delivery_time?: string | null
           id?: string
           name?: string
           notes?: string | null
+          order_code?: string | null
           payment_method?: string
           phone?: string
           shipment_carrier?: string | null
