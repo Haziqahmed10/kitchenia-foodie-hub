@@ -5,18 +5,11 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/components/ui/use-toast";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText, Package } from "lucide-react";
-import { format } from "date-fns";
+import { OrdersList } from "@/components/orders/OrdersList";
+import { EmptyOrdersState } from "@/components/orders/EmptyOrdersState";
+import { LoadingState } from "@/components/orders/LoadingState";
+import { OrderHistory } from "@/components/orders/OrderHistory";
 
 interface OrderSummary {
   id: string;
@@ -119,30 +112,8 @@ const MyOrdersPage = () => {
     }
   }, [user, authLoading, navigate, toast]);
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { color: string, label: string }> = {
-      'preparing': { color: 'bg-yellow-100 text-yellow-800', label: 'Preparing' },
-      'out for delivery': { color: 'bg-blue-100 text-blue-800', label: 'Out for Delivery' },
-      'delivered': { color: 'bg-green-100 text-green-800', label: 'Delivered' },
-      'cancelled': { color: 'bg-red-100 text-red-800', label: 'Cancelled' },
-      'pending': { color: 'bg-gray-100 text-gray-800', label: 'Pending' }
-    };
-    
-    const defaultStatus = { color: 'bg-gray-100 text-gray-800', label: status.charAt(0).toUpperCase() + status.slice(1) };
-    const statusStyle = statusMap[status.toLowerCase()] || defaultStatus;
-    
-    return <Badge className={statusStyle.color}>{statusStyle.label}</Badge>;
-  };
-
   if (loading || authLoading) {
-    return (
-      <div className="section-container py-12 flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kitchenia-orange mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your orders...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -164,63 +135,12 @@ const MyOrdersPage = () => {
         </div>
 
         {orders.length === 0 ? (
-          <div className="text-center py-12 border rounded-lg bg-gray-50">
-            <Package className="h-12 w-12 mx-auto text-gray-400" />
-            <h2 className="mt-4 text-xl font-semibold">No orders yet</h2>
-            <p className="mt-2 text-gray-600">You haven't placed any orders with us yet.</p>
-            <Button asChild className="mt-6 bg-kitchenia-orange hover:bg-orange-600">
-              <Link to="/menu">Browse Our Menu</Link>
-            </Button>
-          </div>
+          <EmptyOrdersState />
         ) : (
-          <div className="overflow-x-auto bg-white rounded-lg shadow">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order Code</TableHead>
-                  <TableHead>Food Items</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_code}</TableCell>
-                    <TableCell className="max-w-xs truncate">{order.items_summary}</TableCell>
-                    <TableCell>
-                      {format(new Date(order.created_at), "MMM d, yyyy")}
-                    </TableCell>
-                    <TableCell>Rs. {order.total_amount}</TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/order/${order.id}`}>
-                          <FileText className="h-4 w-4 mr-1" /> View Details
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <OrdersList orders={orders} />
         )}
 
-        <div className="mt-12 bg-gray-50 p-6 rounded-lg border">
-          <div className="flex items-start gap-4">
-            <Calendar className="h-8 w-8 text-kitchenia-orange mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold">Order History</h3>
-              <p className="text-gray-600 mt-1">
-                Your order history is maintained for 6 months. If you need information about older orders,
-                please contact our customer support team.
-              </p>
-            </div>
-          </div>
-        </div>
+        <OrderHistory />
       </div>
     </motion.div>
   );
