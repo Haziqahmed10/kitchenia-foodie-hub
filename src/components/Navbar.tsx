@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,12 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -27,16 +25,8 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast({
-        title: "Signed out successfully!",
-        description: "You have been signed out.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message || "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
   };
 
@@ -64,7 +54,7 @@ const Navbar = () => {
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.user_metadata?.avatar_url as string} alt={user?.user_metadata?.full_name as string} />
-                      <AvatarFallback>{(user?.user_metadata?.full_name as string)?.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{(user?.user_metadata?.full_name as string)?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -117,7 +107,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      <MobileMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+      <MobileMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} user={user} />
     </motion.nav>
   );
 };
@@ -151,37 +141,42 @@ const NavLinks = () => (
   </div>
 );
 
-const MobileMenu = ({ isOpen, toggleMenu }: { isOpen: boolean; toggleMenu: () => void }) => (
+const MobileMenu = ({ isOpen, toggleMenu, user }: { isOpen: boolean; toggleMenu: () => void; user: any }) => (
   <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       <Link
         to="/"
         className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+        onClick={toggleMenu}
       >
         Home
       </Link>
       <Link
         to="/menu"
         className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+        onClick={toggleMenu}
       >
         Menu
       </Link>
       <Link
         to="/about"
         className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+        onClick={toggleMenu}
       >
         About
       </Link>
       <Link
         to="/order"
         className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+        onClick={toggleMenu}
       >
         Order
       </Link>
-      {isOpen && (
+      {user && (
         <Link
           to="/my-orders"
           className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+          onClick={toggleMenu}
         >
           My Orders
         </Link>

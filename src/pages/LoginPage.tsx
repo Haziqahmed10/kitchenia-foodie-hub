@@ -1,29 +1,24 @@
 
-import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import LoginForm from "@/components/auth/LoginForm";
+import SignupForm from "@/components/auth/SignupForm";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   const [loginData, setLoginData] = useState({
@@ -60,41 +55,13 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!loginData.email || !loginData.password) {
-      toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Login successful",
-        description: "Welcome back! You're now signed in.",
-      });
-
-      // Redirect to the previous page or home
-      const from = new URLSearchParams(location.search).get("from") || "/";
-      navigate(from);
-    } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message || "Please check your credentials and try again",
-        variant: "destructive",
-      });
-    } finally {
+      await signIn(loginData.email, loginData.password);
+      
+      // Redirect handled by useEffect when user changes
+    } catch (error) {
+      // Error handling is done in the AuthContext
       setIsLoading(false);
     }
   };
@@ -103,15 +70,6 @@ const LoginPage = () => {
     e.preventDefault();
     
     // Validate form
-    if (!signupData.email || !signupData.password || !signupData.name) {
-      toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (signupData.password !== signupData.confirmPassword) {
       toast({
         title: "Password error",
@@ -130,39 +88,18 @@ const LoginPage = () => {
       return;
     }
 
+    const userData = {
+      full_name: signupData.name,
+      phone: signupData.phone,
+    };
+
     try {
       setIsLoading(true);
+      await signUp(signupData.email, signupData.password, userData);
       
-      // Create user in Supabase Auth
-      const { error } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          data: {
-            full_name: signupData.name,
-            phone: signupData.phone,
-          },
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully!",
-      });
-
-      // Redirect to home
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Registration failed",
-        description: error.message || "An error occurred during registration",
-        variant: "destructive",
-      });
-    } finally {
+      // Redirect will happen through useEffect when user state changes
+    } catch (error) {
+      // Error handling is done in the AuthContext
       setIsLoading(false);
     }
   };
@@ -189,45 +126,13 @@ const LoginPage = () => {
                   Sign in to your account to continue
                 </CardDescription>
               </CardHeader>
-              <form onSubmit={handleLogin}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      name="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={loginData.email}
-                      onChange={handleLoginChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Password</Label>
-                      <Link to="#" className="text-sm text-kitchenia-orange hover:underline">
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <Input
-                      id="login-password"
-                      name="password"
-                      type="password"
-                      value={loginData.password}
-                      onChange={handleLoginChange}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    type="submit"
-                    className="w-full bg-kitchenia-orange hover:bg-orange-600"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </CardFooter>
-              </form>
+              <LoginForm 
+                email={loginData.email}
+                password={loginData.password}
+                isLoading={isLoading}
+                onChange={handleLoginChange}
+                onSubmit={handleLogin}
+              />
             </Card>
           </TabsContent>
           
@@ -239,70 +144,12 @@ const LoginPage = () => {
                   Sign up to order delicious food
                 </CardDescription>
               </CardHeader>
-              <form onSubmit={handleSignup}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      name="name"
-                      placeholder="Your Name"
-                      value={signupData.name}
-                      onChange={handleSignupChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      name="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={signupData.email}
-                      onChange={handleSignupChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Phone (Optional)</Label>
-                    <Input
-                      id="signup-phone"
-                      name="phone"
-                      placeholder="Your Phone Number"
-                      value={signupData.phone}
-                      onChange={handleSignupChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      value={signupData.password}
-                      onChange={handleSignupChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
-                    <Input
-                      id="signup-confirm-password"
-                      name="confirmPassword"
-                      type="password"
-                      value={signupData.confirmPassword}
-                      onChange={handleSignupChange}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    type="submit"
-                    className="w-full bg-kitchenia-orange hover:bg-orange-600"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Creating Account..." : "Create Account"}
-                  </Button>
-                </CardFooter>
-              </form>
+              <SignupForm
+                signupData={signupData}
+                isLoading={isLoading}
+                onChange={handleSignupChange}
+                onSubmit={handleSignup}
+              />
             </Card>
           </TabsContent>
         </Tabs>
