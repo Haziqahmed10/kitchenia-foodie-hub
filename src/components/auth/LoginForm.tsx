@@ -1,24 +1,33 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LoginFormProps {
   email: string;
   password: string;
   isLoading: boolean;
+  error: string | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
-const LoginForm = ({ email, password, isLoading, onChange, onSubmit }: LoginFormProps) => {
+const LoginForm = ({ email, password, isLoading, error, onChange, onSubmit }: LoginFormProps) => {
   return (
     <form onSubmit={onSubmit}>
       <CardContent className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className="space-y-2">
           <Label htmlFor="login-email">Email</Label>
           <Input
@@ -31,6 +40,7 @@ const LoginForm = ({ email, password, isLoading, onChange, onSubmit }: LoginForm
             required
           />
         </div>
+        
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="login-password">Password</Label>

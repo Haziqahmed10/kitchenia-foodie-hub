@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 
@@ -20,6 +20,8 @@ const LoginPage = () => {
   const { toast } = useToast();
   const { user, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
   
   const [loginData, setLoginData] = useState({
     email: "",
@@ -32,6 +34,7 @@ const LoginPage = () => {
     confirmPassword: "",
     name: "",
     phone: "",
+    address: "",
   });
 
   // Redirect if already logged in
@@ -45,23 +48,55 @@ const LoginPage = () => {
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prev) => ({ ...prev, [name]: value }));
+    setLoginError(null);
   };
 
-  const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setSignupData((prev) => ({ ...prev, [name]: value }));
+    setSignupErrors({});
+  };
+
+  const validateSignupData = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!signupData.name.trim()) {
+      errors.name = "Name is required";
+    }
+    
+    if (!signupData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    if (signupData.phone && !/^\+?[0-9]{10,15}$/.test(signupData.phone.replace(/[-\s]/g, ''))) {
+      errors.phone = "Please enter a valid phone number";
+    }
+    
+    if (!signupData.password) {
+      errors.password = "Password is required";
+    } else if (signupData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters long";
+    }
+    
+    if (signupData.password !== signupData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+    
+    return errors;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
     
     try {
       setIsLoading(true);
       await signIn(loginData.email, loginData.password);
-      
       // Redirect handled by useEffect when user changes
-    } catch (error) {
-      // Error handling is done in the AuthContext
+    } catch (error: any) {
+      setLoginError(error.message || "Login failed. Please check your credentials and try again.");
       setIsLoading(false);
     }
   };
@@ -70,36 +105,41 @@ const LoginPage = () => {
     e.preventDefault();
     
     // Validate form
-    if (signupData.password !== signupData.confirmPassword) {
-      toast({
-        title: "Password error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (signupData.password.length < 6) {
-      toast({
-        title: "Password error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
+    const validationErrors = validateSignupData();
+    if (Object.keys(validationErrors).length > 0) {
+      setSignupErrors(validationErrors);
       return;
     }
 
     const userData = {
       full_name: signupData.name,
       phone: signupData.phone,
+      address: signupData.address,
     };
 
     try {
       setIsLoading(true);
       await signUp(signupData.email, signupData.password, userData);
       
-      // Redirect will happen through useEffect when user state changes
-    } catch (error) {
-      // Error handling is done in the AuthContext
+      toast({
+        title: "Account created successfully",
+        description: "Please check your email for verification instructions.",
+      });
+      
+      // Clear form
+      setSignupData({
+        email: "",
+        password: "",
+        confirmPassword: "",
+        name: "",
+        phone: "",
+        address: "",
+      });
+      setIsLoading(false);
+    } catch (error: any) {
+      setSignupErrors({
+        general: error.message || "Failed to create account. Please try again."
+      });
       setIsLoading(false);
     }
   };
@@ -130,6 +170,7 @@ const LoginPage = () => {
                 email={loginData.email}
                 password={loginData.password}
                 isLoading={isLoading}
+                error={loginError}
                 onChange={handleLoginChange}
                 onSubmit={handleLogin}
               />
@@ -147,6 +188,7 @@ const LoginPage = () => {
               <SignupForm
                 signupData={signupData}
                 isLoading={isLoading}
+                errors={signupErrors}
                 onChange={handleSignupChange}
                 onSubmit={handleSignup}
               />

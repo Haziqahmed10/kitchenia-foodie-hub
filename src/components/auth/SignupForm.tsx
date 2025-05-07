@@ -1,9 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SignupFormProps {
   signupData: {
@@ -12,13 +14,15 @@ interface SignupFormProps {
     confirmPassword: string;
     name: string;
     phone: string;
+    address?: string;
   };
   isLoading: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
-const SignupForm = ({ signupData, isLoading, onChange, onSubmit }: SignupFormProps) => {
+const SignupForm = ({ signupData, isLoading, errors, onChange, onSubmit }: SignupFormProps) => {
   return (
     <form onSubmit={onSubmit}>
       <CardContent className="space-y-4">
@@ -31,8 +35,11 @@ const SignupForm = ({ signupData, isLoading, onChange, onSubmit }: SignupFormPro
             value={signupData.name}
             onChange={onChange}
             required
+            className={errors.name ? "border-red-500" : ""}
           />
+          {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
         </div>
+        
         <div className="space-y-2">
           <Label htmlFor="signup-email">Email</Label>
           <Input
@@ -43,18 +50,37 @@ const SignupForm = ({ signupData, isLoading, onChange, onSubmit }: SignupFormPro
             value={signupData.email}
             onChange={onChange}
             required
+            className={errors.email ? "border-red-500" : ""}
           />
+          {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
         </div>
+        
         <div className="space-y-2">
-          <Label htmlFor="signup-phone">Phone (Optional)</Label>
+          <Label htmlFor="signup-phone">Phone Number</Label>
           <Input
             id="signup-phone"
             name="phone"
             placeholder="Your Phone Number"
             value={signupData.phone}
             onChange={onChange}
+            className={errors.phone ? "border-red-500" : ""}
           />
+          {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="signup-address">Address (Optional)</Label>
+          <Input
+            id="signup-address"
+            name="address"
+            placeholder="Your Address"
+            value={signupData.address || ""}
+            onChange={onChange}
+            className={errors.address ? "border-red-500" : ""}
+          />
+          {errors.address && <p className="text-xs text-red-500">{errors.address}</p>}
+        </div>
+        
         <div className="space-y-2">
           <Label htmlFor="signup-password">Password</Label>
           <Input
@@ -65,8 +91,11 @@ const SignupForm = ({ signupData, isLoading, onChange, onSubmit }: SignupFormPro
             onChange={onChange}
             required
             minLength={6}
+            className={errors.password ? "border-red-500" : ""}
           />
+          {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
         </div>
+        
         <div className="space-y-2">
           <Label htmlFor="signup-confirm-password">Confirm Password</Label>
           <Input
@@ -76,8 +105,17 @@ const SignupForm = ({ signupData, isLoading, onChange, onSubmit }: SignupFormPro
             value={signupData.confirmPassword}
             onChange={onChange}
             required
+            className={errors.confirmPassword ? "border-red-500" : ""}
           />
+          {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
         </div>
+
+        {errors.general && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.general}</AlertDescription>
+          </Alert>
+        )}
       </CardContent>
       <CardFooter>
         <Button

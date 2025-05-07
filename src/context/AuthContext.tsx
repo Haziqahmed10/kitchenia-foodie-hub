@@ -3,14 +3,25 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata: any) => Promise<void>;
+  signUp: (email: string, password: string, userData: UserData) => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (userData: Partial<UserData>) => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+}
+
+interface UserData {
+  full_name?: string;
+  phone?: string;
+  address?: string;
+  email?: string;
+  [key: string]: any; // Allow for additional fields
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,13 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, metadata: any) => {
+  const signUp = async (email: string, password: string, userData: UserData) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: metadata,
+          data: userData,
         },
       });
 
@@ -78,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       toast({
         title: "Account created",
-        description: "Your account has been created successfully!",
+        description: "Your account has been created successfully! Please check your email for verification.",
       });
     } catch (error: any) {
       toast({
@@ -109,6 +120,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (userData: Partial<UserData>) => {
+    try {
+      if (!user) throw new Error("No user logged in");
+      
+      const { error } = await supabase.auth.updateUser({
+        data: userData,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const sendPasswordResetEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Reset email sent",
+        description: "Check your email for a password reset link.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const value = {
     user,
     session,
@@ -116,6 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signOut,
+    updateProfile,
+    sendPasswordResetEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

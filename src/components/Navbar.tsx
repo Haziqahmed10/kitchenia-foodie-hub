@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -63,6 +63,9 @@ const Navbar = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem disabled>{user?.email}</DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Profile Settings</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/my-orders">My Orders</Link>
                   </DropdownMenuItem>
@@ -173,13 +176,22 @@ const MobileMenu = ({ isOpen, toggleMenu, user }: { isOpen: boolean; toggleMenu:
         Order
       </Link>
       {user && (
-        <Link
-          to="/my-orders"
-          className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
-          onClick={toggleMenu}
-        >
-          My Orders
-        </Link>
+        <>
+          <Link
+            to="/profile"
+            className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+            onClick={toggleMenu}
+          >
+            Profile
+          </Link>
+          <Link
+            to="/my-orders"
+            className="text-gray-700 hover:text-kitchenia-orange transition-colors duration-300 block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-100"
+            onClick={toggleMenu}
+          >
+            My Orders
+          </Link>
+        </>
       )}
     </div>
   </div>
